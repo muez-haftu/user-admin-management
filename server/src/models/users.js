@@ -44,9 +44,16 @@ const userSchema = new Schema({
         default: Date.now,
     },
     image: {
-        data: Buffer,
-        contentType: String,
-        name: String
+        name: {
+            type: String
+        },
+        contentType: {
+            type: String,
+        },
+        path: {
+            type: String
+        }
+
     },
 })
 

@@ -15,6 +15,7 @@ const formidable = require('express-formidable');
 const session = require('express-session');
 const dev = require('../config');
 const { isLoggedIn, isLoggedOut } = require('../helpers/authen');
+const upload = require('../helpers/uploadSingleFile');
 
 router.use(session({
     name: 'user_session',
@@ -24,7 +25,8 @@ router.use(session({
     cookie: { secure: false, maxAge: 10 * 6000 },
 }));
 
-router.post('/register', formidable(), registerUser);
+router.post('/register', upload.single('image'), registerUser);
+//router.post('/register', formidable(), registerUser);
 router.post('/verify-email', verifyEmail);
 router.post('/login', isLoggedOut, loginUser);
 router.get('/logout', isLoggedIn, logoutUser);

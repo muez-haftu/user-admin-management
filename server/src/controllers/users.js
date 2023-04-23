@@ -8,8 +8,13 @@ const jwt = require('jsonwebtoken');
 
 const registerUser = async(req, res) => {
     try {
-        const { name, email, phone, password } = req.fields;
-        const { image } = req.files;
+        const { name, email, phone, password } = req.body;
+        const image = req.file;
+        console.log(name);
+        console.log(image.filename);
+
+        // const { name, email, phone, password } = req.fields;
+        // const { image } = req.files;
 
         if (!name || !email || !phone || !password) {
             return res.status(400).json({
@@ -79,6 +84,7 @@ const verifyEmail = (req, res) => {
             decoded;
             console.log(name, email)
             console.log(image);
+            console.log(image.filename);
 
             const isExist = await User.findOne({ email: email })
             if (isExist) {
@@ -96,9 +102,11 @@ const verifyEmail = (req, res) => {
 
             })
             if (image) {
-                newUser.image.data = fs.readFileSync(image.path);
-                newUser.image.contentType = image.type;
-                newUser.image.name = image.name;
+                // newUser.image.data = fs.readFileSync(image.path);
+                //newUser.image.contentType = image.type;
+                newUser.image.name = image.filename;
+                newUser.image.contentType = image.mimetype;
+                newUser.image.path = image.path;
             }
             //save the user
             const user = await newUser.save();

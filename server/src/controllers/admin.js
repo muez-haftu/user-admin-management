@@ -4,6 +4,7 @@ const { securePassword, comparePassword } = require("../helpers/bcryptPassword")
 const { sendEmailWithNodeMailer } = require("../helpers/email");
 const User = require("../models/users");
 const jwt = require('jsonwebtoken');
+const ExcelJS = require('exceljs');
 
 const loginAdmin = async(req, res) => {
     try {
@@ -70,9 +71,9 @@ const logoutAdmin = (req, res) => {
 }
 const getAllUsersByAdmin = async(req, res) => {
     try {
-        const users = await User.find({ is_admin: 0 });
+        const users = await User.find({ is_admin: 1 });
         res.status(200).json({
-            message: 'logout successfull',
+            message: 'all admin users are ',
             users: users
         });
     } catch (error) {
@@ -81,9 +82,67 @@ const getAllUsersByAdmin = async(req, res) => {
         });
     }
 }
+const deleteUserByAdmin = async(req, res) => {
+    try {
+        await User.findByIdAndDelete(req.session.userId);
+
+        res.status(200).json({
+            message: 'delete was successfull',
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+}
+
+const exportUsers = async(req, res) => {
+    try {
+        const workbook = new ExcelJS.Workbook();
+        const workSheet = workbook.addWorksheet('Users');
+        workSheet.columns = [
+            { header: 'Name', key: 'name' },
+            { header: 'Email', key: 'email' },
+            { hader: 'Password', key: 'password' },
+            { header: 'Image', key: 'image' },
+            { header: 'Phone', key: 'phone' },
+            { header: 'IsAdmin', key: 'is_admin' },
+        ];
+        const userData = await User.find({ is_admin: 1 });
+        userData.map((user) => {
+            workSheet.addRow(user);
+        });
+        workSheet.getRow(1).eachCell((cell) => {
+            cell.font = { bold: true };
+        });
+
+        res.setHeader(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        res.setHeader(
+            'Content-Disposition',
+            'attachment; filename= ' + 'users.xlsx'
+        );
+
+        return workbook.xlsx.write(res).then(() => {
+            res.status(200).end();
+        })
+
+
+    } catch (error) {
+        res.status(500).send({
+            message: error.message,
+        })
+
+    }
+}
+
 
 module.exports = {
     loginAdmin,
     logoutAdmin,
     getAllUsersByAdmin,
+    deleteUserByAdmin,
+    exportUsers,
 }
